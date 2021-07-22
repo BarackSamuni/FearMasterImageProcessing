@@ -1,0 +1,6 @@
+*.mov
+*.png
+/__pychache__
+/.vscode
+/.ipynb_checkpoint
+/.idea
