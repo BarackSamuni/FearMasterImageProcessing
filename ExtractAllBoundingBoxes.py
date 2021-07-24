@@ -1,6 +1,8 @@
-import cv2
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import cv2
+import sys
+import darknet
 
 
 # Load image, grayscale, Otsu's threshold
