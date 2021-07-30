@@ -8,21 +8,21 @@ class Track:
     
         self.trackerList.append(cv2.legacy.TrackerCSRT_create)
         self.trackerList.append(cv2.legacy.TrackerMedianFlow_create)
-        self.trackerList.append(cv2.legacy.TrackerKCF_create)
+        #self.trackerList.append(cv2.legacy.TrackerKCF_create)
+        #self.trackerList.append(cv2.legacy.TrackerMOSSE_create)
         self.trackersObjects={}
         self.centroids = {}
         self.idCount = 0
         self.objectsBbsAndIds = {}
 
 
-        
-
-  
 
     def initTrackers(self,initFrame,bbox):
         x,y,w,h = bbox
         objTrackers = []
-
+        area = w*h
+        if area < 3000:
+            return
         for tracker in self.trackerList:
             trackerObj = tracker()
             trackerObj.init(initFrame,bbox)
@@ -30,7 +30,7 @@ class Track:
         
         self.trackersObjects[self.idCount] = objTrackers
         self.centroids[self.idCount] = self.findCentroid(bbox)
-        self.objectsBbsAndIds[self.idCount] = [x,y,w,h]
+        self.objectsBbsAndIds[self.idCount] = [x,y,w,h,0,0]
         self.idCount += 1
         
 
@@ -50,7 +50,7 @@ class Track:
         for id, center in self.centroids.items():
             distance = math.hypot(centroid[0]-center[0],centroid[1]-center[1])
             
-            if distance < 100:               #this is the same object,just update its centroid
+            if distance < 50:               #this is the same object,just update its centroid
                 self.centroids[id] = centroid
                 newObjectDetected = False
                 break
@@ -79,14 +79,26 @@ class Track:
                     success , _ = tracker.update(frame)
                 
                 update &= success
+            
+            centroidBbox = self.findCentroid(bbox)
+            distance = math.hypot(self.centroids[idx][0] - centroidBbox[0] ,self.centroids[idx][1] - centroidBbox[1] )
 
-            if not update:                              #add an id to remove
+            if distance < 5:
+                self.objectsBbsAndIds[idx][5] += 1
+            
+            if self.objectsBbsAndIds[idx][5]==150:
                 IDsToRemove.append(idx)
+            
+            if not update:                              #add an id to remove
+                self.objectsBbsAndIds[idx][4] += 1
+                if self.objectsBbsAndIds[idx][4] == 30 and self.objectsBbsAndIds[idx][5]<150:
+                    IDsToRemove.append(idx)
+
 
 
             else:                                       #update object bbox and centroid
                 x , y, w , h = bbox
-                self.objectsBbsAndIds.update({idx: [x,y,w,h]})
+                self.objectsBbsAndIds.update({idx: [x,y,w,h,0,self.objectsBbsAndIds[idx][5]]})
                 self.centroids.update({idx : self.findCentroid(bbox)})
         
         for id in IDsToRemove:                          #remove object,its trackers and centroid
@@ -99,7 +111,7 @@ class Track:
 
     def DisplayObjects(self,frame):
         for id,object in self.objectsBbsAndIds.items():
-            x , y, w ,h = object
+            x , y, w ,h , _ , _  = object
             self.drawBox(frame,(x,y,w,h))
             cv2.putText(frame,str(id),(int(x),int(y)-15),cv2.FONT_HERSHEY_PLAIN,2,(255,0,0),2)
     

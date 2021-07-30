@@ -3,10 +3,14 @@ import cv2
 import json
 import time
 
-with open('detections.json') as json_file:
+VIDEOILE = "video2.MOV"
+JSONFILE = "detection2.json"
+
+
+with open(JSONFILE) as json_file:
     coordinates= json.load(json_file)
 
-vid = cv2.VideoCapture("OriginalCleanVideo.mp4")
+vid = cv2.VideoCapture(VIDEOILE)
 fps= int(vid.get(cv2.CAP_PROP_FPS))
 
 outputvid = cv2.VideoWriter("tracking.avi",cv2.VideoWriter_fourcc(*'DIVX'),vid.get(cv2.CAP_PROP_FPS),(416,416))
