@@ -50,7 +50,7 @@ class Track:
         for id, center in self.centroids.items():
             distance = math.hypot(centroid[0]-center[0],centroid[1]-center[1])
             
-            if distance < 50:               #this is the same object,just update its centroid
+            if distance < 40:               #this is the same object,just update its centroid
                 self.centroids[id] = centroid
                 newObjectDetected = False
                 break
@@ -86,12 +86,12 @@ class Track:
             if distance < 5:
                 self.objectsBbsAndIds[idx][5] += 1
             
-            if self.objectsBbsAndIds[idx][5]==150:
+            if self.objectsBbsAndIds[idx][5]==120:
                 IDsToRemove.append(idx)
             
             if not update:                              #add an id to remove
                 self.objectsBbsAndIds[idx][4] += 1
-                if self.objectsBbsAndIds[idx][4] == 30 and self.objectsBbsAndIds[idx][5]<150:
+                if self.objectsBbsAndIds[idx][4] == 30 and self.objectsBbsAndIds[idx][5]<120:
                     IDsToRemove.append(idx)
 
 
