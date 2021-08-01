@@ -2,12 +2,14 @@ import cv2
 import itertools
 import math
 
+Obsticle = 1
+
 class Track:
     def __init__(self):
         self.trackerList = []
     
         self.trackerList.append(cv2.legacy.TrackerCSRT_create)
-        self.trackerList.append(cv2.legacy.TrackerMedianFlow_create)
+        #self.trackerList.append(cv2.legacy.TrackerMedianFlow_create)
         #self.trackerList.append(cv2.legacy.TrackerKCF_create)
         #self.trackerList.append(cv2.legacy.TrackerMOSSE_create)
         self.trackersObjects={}
@@ -21,7 +23,7 @@ class Track:
         x,y,w,h = bbox
         objTrackers = []
         area = w*h
-        if area < 3000:
+        if area < 2500:
             return
         for tracker in self.trackerList:
             trackerObj = tracker()
@@ -65,11 +67,15 @@ class Track:
     def drawBox(self,img,bbox):
         x, y, w, h = int(bbox[0]),int(bbox[1]),int(bbox[2]),int(bbox[3])
         cv2.rectangle(img,(x,y),((x+w),(y+h)),(0,255,0),3,1)
+        tmp = self.findCentroid(bbox)
+        center = (int(tmp[0]),int(tmp[1]))
+        cv2.circle(img,center,5,color=(0, 0, 255),thickness=5)
     
     def updateTrackers(self,frame):
         update = True
         IDsToRemove = []
-
+        Static = False
+        global Obsticle
         for idx,trackersContainer in self.trackersObjects.items():
 
             for tracker,flag in zip(trackersContainer,[True,False,False]):
@@ -85,20 +91,25 @@ class Track:
 
             if distance < 5:
                 self.objectsBbsAndIds[idx][5] += 1
+                Static = True
+
+            if idx == 44 or idx == 71:
+                Obsticle = idx
             
-            if self.objectsBbsAndIds[idx][5]==120:
+
+            if self.objectsBbsAndIds[idx][5]==120 and idx !=  Obsticle:
                 IDsToRemove.append(idx)
             
             if not update:                              #add an id to remove
                 self.objectsBbsAndIds[idx][4] += 1
-                if self.objectsBbsAndIds[idx][4] == 30 and self.objectsBbsAndIds[idx][5]<120:
+                if self.objectsBbsAndIds[idx][4] == 80 and self.objectsBbsAndIds[idx][5]<120:
                     IDsToRemove.append(idx)
 
 
 
             else:                                       #update object bbox and centroid
                 x , y, w , h = bbox
-                self.objectsBbsAndIds.update({idx: [x,y,w,h,0,self.objectsBbsAndIds[idx][5]]})
+                self.objectsBbsAndIds.update({idx: [x,y,w,h,0,self.objectsBbsAndIds[idx][5]*Static]})
                 self.centroids.update({idx : self.findCentroid(bbox)})
         
         for id in IDsToRemove:                          #remove object,its trackers and centroid
@@ -108,39 +119,8 @@ class Track:
             self.trackersObjects.pop(id)
 
 
-
     def DisplayObjects(self,frame):
         for id,object in self.objectsBbsAndIds.items():
             x , y, w ,h , _ , _  = object
             self.drawBox(frame,(x,y,w,h))
             cv2.putText(frame,str(id),(int(x),int(y)-15),cv2.FONT_HERSHEY_PLAIN,2,(255,0,0),2)
-    
-
-
-
-    
-
-
-
-
-
-
-            
-
-        
-
-
-    
-        
-
-
-
-
-        
-       
-            
-
-
-        
-        
-            

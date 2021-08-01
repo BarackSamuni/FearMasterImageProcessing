@@ -1,13 +1,12 @@
-from PersonTracking import Track
+from PersonTracking import Obsticle, Track
 import cv2
 import json
 import time
 import csv
 
-VIDEOILE = "OriginalCleanVideo.mp4"
+VIDEOILE = "video1.mp4"
 JSONFILE = "detections.json"
-CSVFILE = "coordinates.csv"
-
+CSVFILE = "coordinates2.csv"
 
 with open(JSONFILE) as json_file:
     coordinates= json.load(json_file)
@@ -61,11 +60,15 @@ with open(CSVFILE,'w',newline='') as f:
 
         cv2.imshow("video",frame)
         outputvid.write(frame)
-        timeStamp = vid.get(cv2.CAP_PROP_POS_MSEC) / 1000
 
-        for id , centroid in allTrackers.centroids.items():
-            data = [id , timeStamp, centroid]
-            writeCSV.writerow(data)
+        timeStamp = vid.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+        factor = int(0.25* vid.get(cv2.CAP_PROP_FPS))
+        timeStampCheck = factor/vid.get(cv2.CAP_PROP_FPS)
+
+        if True:
+            for id , centroid in allTrackers.centroids.items():
+                    data = [id , timeStamp, centroid]
+                    writeCSV.writerow(data)
 
 
 
