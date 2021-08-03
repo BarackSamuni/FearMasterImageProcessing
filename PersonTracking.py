@@ -57,7 +57,8 @@ class Track:
                 newObjectDetected = False
                 break
         
-        return newObjectDetected
+        return newObjectDetected 
+
 
 
 
